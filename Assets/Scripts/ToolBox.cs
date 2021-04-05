@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ToolBox : MonoBehaviour {
@@ -27,7 +28,9 @@ public class ToolBox : MonoBehaviour {
     private void Awake() {
         size = (Vector2)GetComponent<MeshRenderer>().bounds.size;
 
-        rng = new System.Random(Time.time.GetHashCode());
+        string _seed = DateTime.Now.ToString();
+        Debug.Log($"Seed: {_seed}");
+        rng = new System.Random(_seed.GetHashCode());
 
         toolboxPieces = new (Vector3, Piece)[numPieces];
         SetPieceLocations();
@@ -44,7 +47,6 @@ public class ToolBox : MonoBehaviour {
 
     private Piece InstantiatePiece(Vector3 _position) {
         int _next = rng.Next(0, 100);
-        Debug.Log($"Next: {_next}");
         PieceShape _shape = GetPieceShape(_next);
         Debug.Log($"Shape: {_shape}");
         GameObject _prefab =  LoadPiecePrefab(_shape);
