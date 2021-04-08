@@ -95,10 +95,9 @@ public class ToolBox : MonoBehaviour {
     }
 
     public bool IsInside(Vector3 _position) {
-        //TODO there's a bug with the boundaries here
-        return (_position.x > (transform.position.x - size.x - boundClickCoyoteOffset) &&
-                _position.x < (transform.position.x + size.x + boundClickCoyoteOffset) &&
-                _position.y > (transform.position.y - size.y - boundClickCoyoteOffset) &&
-                _position.y < (transform.position.y + size.y + boundClickCoyoteOffset));
+        return (_position.x > (transform.position.x - (size.x/2) - boundClickCoyoteOffset) &&
+                _position.x < (transform.position.x + (size.x/2) + boundClickCoyoteOffset) &&
+                _position.y > (transform.position.y - (size.y/2) - boundClickCoyoteOffset) &&
+                _position.y < (transform.position.y + (size.y/2) + boundClickCoyoteOffset));
     }
 }
