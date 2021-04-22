@@ -45,12 +45,6 @@ public class Piece : MonoBehaviour {
         }
     }
 
-    // TODO - implement once we have Quadrant code in place
-    private bool CanPlace() {
-        return true;
-    }
-
-
     private void Place() {
         isSelected = false;
         if(toolBox.IsInside(transform.position)) {
