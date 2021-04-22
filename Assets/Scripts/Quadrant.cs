@@ -5,6 +5,7 @@ public class Quadrant : MonoBehaviour {
     [Header("Seed Settings")]
     [SerializeField] string seed = "";
     [SerializeField] bool useRandomSeed = true;
+    [SerializeField] Material holeMaterial;
 
     float left, right, top, bottom;
     const float unitSize = 0.5f;
@@ -18,7 +19,7 @@ public class Quadrant : MonoBehaviour {
         System.Random rng = new System.Random(seed.GetHashCode());
 
         mesh = GetComponent<MeshFilter>().mesh;
-        
+
         meshRenderer = GetComponent<MeshRenderer>();
         meshRenderer.enabled = true;
 
