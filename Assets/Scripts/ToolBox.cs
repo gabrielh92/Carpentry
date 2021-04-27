@@ -11,25 +11,25 @@ public class ToolBox : MonoBehaviour {
     System.Random rng;
 
     List<(PieceShape shape, int frequency)> pieceFrequencyDistribution = new List<(PieceShape, int)> {
-        ( PieceShape.P , 22 ),   // 22%
-        ( PieceShape.F , 37 ),   // 15%
-        ( PieceShape.Y , 52 ),   // 15%
-        ( PieceShape.L , 60 ),   // 8%
-        ( PieceShape.N , 68 ),   // 8%
-        ( PieceShape.T , 75 ),   // 7%
-        ( PieceShape.U , 80 ),   // 5%
-        ( PieceShape.V , 85 ),   // 5%
-        ( PieceShape.W , 90 ),   // 5%
-        ( PieceShape.Z , 95 ),   // 5%
-        ( PieceShape.X , 98 ),   // 3%
-        ( PieceShape.I , 100 ),  // 2%
+        ( PieceShape.P , 21 ),   // 22%
+        ( PieceShape.F , 36 ),   // 15%
+        ( PieceShape.Y , 51 ),   // 15%
+        ( PieceShape.L , 59 ),   // 8%
+        ( PieceShape.N , 67 ),   // 8%
+        ( PieceShape.T , 74 ),   // 7%
+        ( PieceShape.U , 79 ),   // 5%
+        ( PieceShape.V , 84 ),   // 5%
+        ( PieceShape.W , 89 ),   // 5%
+        ( PieceShape.Z , 94 ),   // 5%
+        ( PieceShape.X , 97 ),   // 3%
+        ( PieceShape.I , 99 ),  // 2%
     };
     enum PieceShape { F, I, L, N, P, T, U, V, W, X, Y, Z };
 
     private void Awake() {
         size = (Vector2)GetComponent<MeshRenderer>().bounds.size;
 
-        string _seed = DateTime.Now.ToString();
+        string _seed = Guid.NewGuid().ToString();
         rng = new System.Random(_seed.GetHashCode());
 
         toolboxPieces = new (Vector3, Piece)[numPieces];
@@ -46,7 +46,7 @@ public class ToolBox : MonoBehaviour {
     }
 
     private Piece InstantiatePiece(Vector3 _position) {
-        int _next = rng.Next(0, 100);
+        int _next = rng.Next(100); // rng is non-inclusive
         PieceShape _shape = GetPieceShape(_next);
         GameObject _prefab =  LoadPiecePrefab(_shape);
         return GameObject.Instantiate(_prefab, _position, Quaternion.identity).GetComponent<Piece>();
