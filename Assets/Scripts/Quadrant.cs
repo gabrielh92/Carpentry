@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[ExecuteInEditMode]
 public class Quadrant : MonoBehaviour {
     [Header("Seed Settings")]
     [SerializeField] string seed = "";
@@ -24,36 +23,32 @@ public class Quadrant : MonoBehaviour {
 
         hole = new Square[(int)(width / unitSize), (int)(height / unitSize)];
 
-        GenerateHoleShape();
+        int _maxVertexIndex = GenerateHole();
 
         DrawDebugLines();
-        GenerateMesh();
+        GenerateMesh(_maxVertexIndex);
     }
 
     // [0] -> Empty Space
     // [1] -> Filled Space
-    private void GenerateHoleShape() {
-        float left, top;
-        left = transform.position.x - (width / 2);
-        top = transform.position.y + (height / 2) - unitSize;
+    private int GenerateHole() {
+        int _idx = InitializeSquares();
+        CreateShape();
+        return _idx;
+    }
 
+    private int InitializeSquares() {
+        float left = -(width / 2);
+        float top = (height / 2);
         int _idx = 0;
         Dictionary<Vector3, Node> nodes = new Dictionary<Vector3, Node>();
 
         for (int x = 0; x < hole.GetLength(0); x++) {
             for (int y = 0; y < hole.GetLength(1); y++) {
-                Node _topLeft = new Node(new Vector3(left + (x * unitSize),
-                                                     top - (y * unitSize),
-                                                     transform.position.z));
-                Node _topRight = new Node(new Vector3(left + (x * unitSize) + unitSize,
-                                                     top - (y * unitSize),
-                                                     transform.position.z));
-                Node _bottomRight = new Node(new Vector3(left + (x * unitSize) + unitSize,
-                                                         top - (y * unitSize) + unitSize,
-                                                         transform.position.z));
-                Node _bottomLeft = new Node(new Vector3(left + (x * unitSize),
-                                                         top - (y * unitSize) + unitSize,
-                                                         transform.position.z));
+                Node _topLeft = new Node(new Vector3(left + (x * unitSize), top - (y * unitSize), 0));
+                Node _topRight = new Node(new Vector3(left + (x * unitSize) + unitSize, top - (y * unitSize), 0));
+                Node _bottomRight = new Node(new Vector3(left + (x * unitSize) + unitSize, top - (y * unitSize) - unitSize, 0));
+                Node _bottomLeft = new Node(new Vector3(left + (x * unitSize), top - (y * unitSize) - unitSize, 0));
 
                 if (!nodes.ContainsKey(_topLeft.position)) {
                     nodes.Add(_topLeft.position, _topLeft);
@@ -87,53 +82,54 @@ public class Quadrant : MonoBehaviour {
                     _bottomLeft = nodes[_bottomLeft.position];
                 }
 
-                // draws x's in every cell
-                Debug.DrawLine(_topLeft.position, _bottomRight.position, Color.white, Mathf.Infinity);
-                Debug.DrawLine(_topRight.position, _bottomLeft.position, Color.white, Mathf.Infinity);
-
                 Square _sq = new Square(_topLeft, _topRight, _bottomRight, _bottomLeft);
                 hole[x, y] = _sq;
             }
         }
 
         UpdateNeighbourSquares();
-
-        hole[0, 0].filled = 1; // TODO - remove
+        return _idx;
     }
 
     private void UpdateNeighbourSquares() {
         // TODO - implement
     }
 
-    private void GenerateMesh() {
-        List<Vector3> _vertices = new List<Vector3>();
+    private void CreateShape() {
+        // TODO - implement
+    }
+
+    private void GenerateMesh(int _totalVertices) {
+        Vector3[] _vertices = new Vector3[_totalVertices + 1];
         List<int> _triangles = new List<int>();
 
-        // TODO - remove
-        float left, right, top, bottom;
-        left = -(width / 2);
-        right = (width / 2);
-        top = (height / 2);
-        bottom = -(height / 2);
+        for(int x = 0 ; x < hole.GetLength(0) ; x++) {
+            for(int y = 0 ; y < hole.GetLength(1) ; y++) {
+                if(hole[x,y].filled == 0) {
+                    Node _topLeft = hole[x, y].topLeft;
+                    Node _topRight = hole[x, y].topRight;
+                    Node _bottomRight = hole[x, y].bottomRight;
+                    Node _bottomLeft = hole[x, y].bottomLeft;
 
-        _vertices.Add(new Vector3(left, top, -5));
-        _vertices.Add(new Vector3(right, top, -5));
-        _vertices.Add(new Vector3(right, bottom, -5));
-        _vertices.Add(new Vector3(left, bottom, -5));
+                    _vertices[_topLeft.vertexIndex] =  _topLeft.position;
+                    _vertices[_topRight.vertexIndex] = _topRight.position;
+                    _vertices[_bottomRight.vertexIndex] = _bottomRight.position;
+                    _vertices[_bottomLeft.vertexIndex] =_bottomLeft.position;
 
-        _triangles.Add(0);
-        _triangles.Add(1);
-        _triangles.Add(2);
+                    _triangles.Add(_topLeft.vertexIndex);
+                    _triangles.Add(_topRight.vertexIndex);
+                    _triangles.Add(_bottomRight.vertexIndex);
 
-        _triangles.Add(0);
-        _triangles.Add(2);
-        _triangles.Add(3);
-
-        // TODO - generate mesh from nodes in squares
+                    _triangles.Add(_topLeft.vertexIndex);
+                    _triangles.Add(_bottomRight.vertexIndex);
+                    _triangles.Add(_bottomLeft.vertexIndex);
+                }
+            }
+        }
 
         Mesh _mesh = new Mesh();
 
-        _mesh.vertices = _vertices.ToArray();
+        _mesh.vertices = _vertices;
         _mesh.triangles = _triangles.ToArray();
 
         MeshFilter meshFilter = GetComponent<MeshFilter>();
