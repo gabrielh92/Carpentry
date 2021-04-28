@@ -925,11 +925,11 @@ PrefabInstance:
       objectReference: {fileID: 1955992139}
     - target: {fileID: 8995137823327050377, guid: 9e98531d76baf4980bd8bce62553d2a0, type: 3}
       propertyPath: useRandomSeed
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8995137823327050377, guid: 9e98531d76baf4980bd8bce62553d2a0, type: 3}
       propertyPath: seed
-      value: 3d7835d4-4779-4b9e-ad56-380c0f40df93
+      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9e98531d76baf4980bd8bce62553d2a0, type: 3}
