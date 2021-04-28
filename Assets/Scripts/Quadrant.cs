@@ -14,23 +14,22 @@ public class Quadrant : MonoBehaviour {
 
     Square[,] hole;
     const float unitSize = 0.5f;
+    System.Random rng;
 
     private void Start() {
         if (useRandomSeed) {
-            seed = DateTime.Now.ToString();
+            seed = Guid.NewGuid().ToString();
         }
-        System.Random rng = new System.Random(seed.GetHashCode());
+        rng = new System.Random(seed.GetHashCode());
 
         hole = new Square[(int)(width / unitSize), (int)(height / unitSize)];
 
         int _maxVertexIndex = GenerateHole();
 
-        DrawDebugLines();
+        //DrawDebugLines();
         GenerateMesh(_maxVertexIndex);
     }
 
-    // [0] -> Empty Space
-    // [1] -> Filled Space
     private int GenerateHole() {
         int _idx = InitializeSquares();
         CreateShape();
@@ -92,11 +91,128 @@ public class Quadrant : MonoBehaviour {
     }
 
     private void UpdateNeighbourSquares() {
-        // TODO - implement
+        for(int x = 0 ; x < hole.GetLength(0) ; x++) {
+            for(int y = 0 ; y < hole.GetLength(1) ; y++) {
+                if(!(x == 0)) { // left edge
+                    hole[x,y].left = hole[x-1,y];
+                } else {
+                    hole[x,y].left = new Square();
+                }
+                if(!(y == 0)) { // top edge
+                    hole[x,y].above = hole[x,y-1];
+                } else {
+                    hole[x,y].above = new Square();
+                }
+                if(!(x == hole.GetLength(0) - 1)) { // right edge
+                    hole[x,y].right = hole[x+1,y];
+                } else {
+                    hole[x,y].right = new Square();
+                }
+                if(!(y == hole.GetLength(1) - 1)) { // bottom edge
+                    hole[x,y].below = hole[x,y+1];
+                } else {
+                    hole[x,y].below = new Square();
+                }
+            }
+        }
     }
 
     private void CreateShape() {
-        // TODO - implement
+        // Generate a Basic Shape
+        for (int x = 0; x < hole.GetLength(0); x++) {
+            for (int y = 0; y < hole.GetLength(1); y++) {
+                if (hole[x, y].IsAtEdge()) {
+                    int _next = rng.Next(100);
+                    hole[x, y].filled = _next > holeFillPercent ? 0 : 1;
+                }
+            }
+        }
+
+        // Make sure (1) everything is connected
+        FixConnections();
+
+        // and (2) the amount of squares % 5 == 0
+        int _extraSquares = GetExtraSquares();
+        while(_extraSquares > 0) {
+            _extraSquares += RemoveExtraSquares();
+        }
+ 
+    }
+
+    private void FixConnectionsRecursive(Square _curr, ref List<Square> _subHole, ref Dictionary<Square, int> _visited) {
+        if(_curr.filled == 1) return;
+        if(_visited.ContainsKey(_curr)) return;
+
+        _visited.Add(_curr, 1);
+        _subHole.Add(_curr);
+
+        FixConnectionsRecursive(_curr.left, ref _subHole, ref _visited);
+        FixConnectionsRecursive(_curr.above, ref _subHole, ref _visited);
+        FixConnectionsRecursive(_curr.right, ref _subHole, ref _visited);
+        FixConnectionsRecursive(_curr.below, ref _subHole, ref _visited);       
+    }
+
+    private void FixConnections() {
+        List<List<Square>> _subHoles = new List<List<Square>>();
+        Dictionary<Square, int> _visited = new Dictionary<Square, int>();
+
+        // find all sub-holes       
+        for(int x = 0 ; x < hole.GetLength(0) ; x++) {
+            for(int y = 0 ; y < hole.GetLength(1) ; y++) {
+                Square _curr = hole[x,y];
+                if(_curr.filled == 1) continue;
+                if(!_visited.ContainsKey(_curr)) {
+                    List<Square> _subHole = new List<Square>();
+                    FixConnectionsRecursive(_curr, ref _subHole, ref _visited);
+                    _subHoles.Add(_subHole);
+                }
+            }
+        }
+
+        // get the index of the longest
+        int _idxLongest = 0;
+        for(int i = 0 ; i < _subHoles.Count ; i++) {
+            if(_subHoles[i].Count > _subHoles[_idxLongest].Count) _idxLongest = i;
+        }
+
+        // fill out the little subHoles
+        for(int x = 0 ; x < hole.GetLength(0) ; x++) {
+            for(int y = 0 ; y < hole.GetLength(1) ; y++) {
+                for (int i = 0; i < _subHoles.Count ; i++) {
+                    if(i == _idxLongest) continue;
+                    for(int j = 0 ; j < _subHoles[i].Count ; j++) {
+                        if(hole[x,y] == _subHoles[i][j]) {
+                            hole[x,y].filled = 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private int RemoveExtraSquares() {
+        // start at random x position so that we're not always eating from the top left corner
+        for (int x = rng.Next(hole.GetLength(0)); x < hole.GetLength(0); x++) {
+            for (int y = 0; y < hole.GetLength(1); y++) {
+                if(hole[x,y].filled == 1) continue;
+                if (hole[x, y].IsAtEdge()) {
+                    hole[x, y].filled = 1;
+                    return -1;
+                }
+            }
+        }
+        return 0;
+    }
+
+    private int GetExtraSquares() {
+        int _activeSquares = 0;
+        for(int x = 0 ; x < hole.GetLength(0) ; x++) {
+            for(int y = 0 ; y < hole.GetLength(1) ; y++) {
+                if(hole[x,y].filled == 0) _activeSquares++;
+            }
+        }
+
+        return _activeSquares % 5;
     }
 
     private void GenerateMesh(int _totalVertices) {
@@ -170,8 +286,12 @@ public class Quadrant : MonoBehaviour {
             filled = 0;
         }
 
+        public Square() {
+            filled = 1;
+        }
+
         public bool IsAtEdge() {
-            return left == null || above == null || right == null || below == null;
+            return (left.filled == 1 || above.filled == 1 || right.filled == 1 || below.filled == 1);
         }
     }
 
