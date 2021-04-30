@@ -91,6 +91,7 @@ public class Piece : MonoBehaviour {
 
     private Mesh SpriteToMesh(Sprite _sprite) {
         Mesh _mesh = new Mesh();
+        _mesh.name = $"Piece {pieceSprite.name}";
         _mesh.vertices = Array.ConvertAll(_sprite.vertices, i => (Vector3)i);
         _mesh.uv = _sprite.uv;
         _mesh.triangles = Array.ConvertAll(_sprite.triangles, i => (int)i);
