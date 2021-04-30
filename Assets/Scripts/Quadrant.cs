@@ -12,7 +12,8 @@ public class Quadrant : MonoBehaviour {
     [SerializeField] int height = 4;
     [SerializeField] [Range(0, 100)] int holeFillPercent = 20;
 
-    public const float unitSize = 0.5f;
+    public float UnitSize { get { return unitSize; } }
+    const float unitSize = 0.5f;
 
     Square[,] hole;
     System.Random rng;

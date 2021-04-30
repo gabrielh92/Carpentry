@@ -50,7 +50,9 @@ public class Piece : MonoBehaviour {
             }
 
             Vector3 _position = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            transform.position = new Vector3(_position.x, _position.y, -6);
+            transform.position = new Vector3((float)(Math.Round(2 * _position.x, MidpointRounding.AwayFromZero) / 2),
+                                             (float)(Math.Round(2 * _position.y, MidpointRounding.AwayFromZero) / 2),
+                                             -6);
         } else {
             if (Input.GetMouseButtonDown(0)) {
                 Select();
