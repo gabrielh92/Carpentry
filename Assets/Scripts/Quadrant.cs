@@ -12,8 +12,9 @@ public class Quadrant : MonoBehaviour {
     [SerializeField] int height = 4;
     [SerializeField] [Range(0, 100)] int holeFillPercent = 20;
 
+    public const float unitSize = 0.5f;
+
     Square[,] hole;
-    const float unitSize = 0.5f;
     System.Random rng;
 
     private void Start() {
@@ -152,6 +153,7 @@ public class Quadrant : MonoBehaviour {
         FixConnectionsRecursive(_curr.below, ref _subHole, ref _visited);       
     }
 
+    // TODO still buggy
     private void FixConnections() {
         List<List<Square>> _subHoles = new List<List<Square>>();
         Dictionary<Square, int> _visited = new Dictionary<Square, int>();
@@ -244,6 +246,7 @@ public class Quadrant : MonoBehaviour {
         }
 
         Mesh _mesh = new Mesh();
+        _mesh.name = $"Mesh {gameObject.name}";
 
         _mesh.vertices = _vertices;
         _mesh.triangles = _triangles.ToArray();
@@ -253,6 +256,8 @@ public class Quadrant : MonoBehaviour {
 
         _mesh.RecalculateBounds();
         _mesh.RecalculateNormals();
+
+        GetComponent<MeshCollider>().sharedMesh = _mesh;
     }
 
     public bool IsInHole(Vector3 _position) {
