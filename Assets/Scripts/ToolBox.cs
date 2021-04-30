@@ -77,7 +77,6 @@ public class ToolBox : MonoBehaviour {
     public Vector3 GetPositionForPiece(int _pieceID) {
         foreach((Vector3, Piece) _piece in toolboxPieces) {
             if(_pieceID == _piece.Item2.GetInstanceID()) {
-                Debug.Log("Found!");
                 return _piece.Item1;
             }
         }
