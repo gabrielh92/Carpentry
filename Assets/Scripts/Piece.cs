@@ -1,13 +1,34 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Piece : MonoBehaviour {
+    [SerializeField] Sprite pieceSprite;
+
     private bool isSelected = false;
     private bool isPlaced = false;
     private ToolBox toolBox;
 
+    private void Awake() {
+        if(pieceSprite) {
+            Mesh _mesh = SpriteToMesh(pieceSprite);
+            GetComponent<MeshFilter>().mesh = _mesh;
+            GetComponent<MeshCollider>().sharedMesh = _mesh;
+        }
+    }
+
     private void Start() {
         toolBox = FindObjectOfType<ToolBox>();
+    }
+
+    private void OnCollisionEnter(Collision _other) {
+        if(_other.gameObject.GetComponent<Quadrant>()) {
+            Debug.Log($"Collided with {_other.gameObject.name}");
+        }
+        else {
+            Debug.Log($"Sad {_other.gameObject.name}");
+        }
     }
 
     private void Update() {
@@ -38,11 +59,13 @@ public class Piece : MonoBehaviour {
     }
 
     private void Select() {
-        RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-        // Casts the ray and get the first game object hit
-        if(hit.transform == transform) {
-            isSelected = true;
+        RaycastHit hit;
+        if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit)) {
+            if(hit.transform == transform) {
+                isSelected = true;
+            }
         }
+
     }
 
     private void Place() {
@@ -56,11 +79,23 @@ public class Piece : MonoBehaviour {
     }
 
     private void Flip() {
-        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        spriteRenderer.flipX = !spriteRenderer.flipX;
+        Mesh _mesh = GetComponent<MeshFilter>().mesh;
+        _mesh.triangles = _mesh.triangles.Reverse().ToArray();
+        _mesh.RecalculateNormals();
+        transform.Rotate(0, 180, 0);
     }
 
     private void Rotate(bool _cw) {
         transform.Rotate(0, 0, (_cw) ? 90 : -90);
+    }
+
+    private Mesh SpriteToMesh(Sprite _sprite) {
+        Mesh _mesh = new Mesh();
+        _mesh.vertices = Array.ConvertAll(_sprite.vertices, i => (Vector3)i);
+        _mesh.uv = _sprite.uv;
+        _mesh.triangles = Array.ConvertAll(_sprite.triangles, i => (int)i);
+        _mesh.RecalculateBounds();
+        _mesh.RecalculateNormals();
+        return _mesh;
     }
 }
