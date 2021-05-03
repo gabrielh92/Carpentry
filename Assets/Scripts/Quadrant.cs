@@ -130,47 +130,53 @@ public class Quadrant : MonoBehaviour {
             }
         }
 
-        // Make sure (1) everything is connected
-        FixConnections();
+        do
+        {
+            // Make sure (1) everything is connected
+            FixConnections();
 
-        // and (2) the amount of squares % 5 == 0
-        int _extraSquares = GetExtraSquares();
-        while(_extraSquares > 0) {
-            _extraSquares += RemoveExtraSquares();
-        }
- 
+            // and (2) the amount of squares % 5 == 0
+            int _extraSquares = GetExtraSquares();
+            while(_extraSquares > 0) {
+                _extraSquares += RemoveExtraSquares();
+            }
+        } while(FindSubHoles().Count > 1);
     }
 
-    private void FixConnectionsRecursive(Square _curr, ref List<Square> _subHole, ref Dictionary<Square, int> _visited) {
-        if(_curr.filled == 1) return;
-        if(_visited.ContainsKey(_curr)) return;
-
-        _visited.Add(_curr, 1);
-        _subHole.Add(_curr);
-
-        FixConnectionsRecursive(_curr.left, ref _subHole, ref _visited);
-        FixConnectionsRecursive(_curr.above, ref _subHole, ref _visited);
-        FixConnectionsRecursive(_curr.right, ref _subHole, ref _visited);
-        FixConnectionsRecursive(_curr.below, ref _subHole, ref _visited);       
-    }
-
-    // TODO still buggy
-    private void FixConnections() {
+    private List<List<Square>> FindSubHoles() {
         List<List<Square>> _subHoles = new List<List<Square>>();
         Dictionary<Square, int> _visited = new Dictionary<Square, int>();
 
-        // find all sub-holes       
         for(int x = 0 ; x < hole.GetLength(0) ; x++) {
             for(int y = 0 ; y < hole.GetLength(1) ; y++) {
                 Square _curr = hole[x,y];
                 if(_curr.filled == 1) continue;
                 if(!_visited.ContainsKey(_curr)) {
                     List<Square> _subHole = new List<Square>();
-                    FixConnectionsRecursive(_curr, ref _subHole, ref _visited);
+                    FindSubHolesRecursive(_curr, ref _subHole, ref _visited);
                     _subHoles.Add(_subHole);
                 }
             }
         }
+
+        return _subHoles;
+    }
+
+    private void FindSubHolesRecursive(Square _curr, ref List<Square> _subHole, ref Dictionary<Square, int> _visited) {
+        if(_curr.filled == 1) return;
+        if(_visited.ContainsKey(_curr)) return;
+
+        _visited.Add(_curr, 1);
+        _subHole.Add(_curr);
+
+        FindSubHolesRecursive(_curr.left, ref _subHole, ref _visited);
+        FindSubHolesRecursive(_curr.above, ref _subHole, ref _visited);
+        FindSubHolesRecursive(_curr.right, ref _subHole, ref _visited);
+        FindSubHolesRecursive(_curr.below, ref _subHole, ref _visited);
+    }
+
+    private void FixConnections() {
+        List<List<Square>> _subHoles = FindSubHoles();
 
         // get the index of the longest
         int _idxLongest = 0;
