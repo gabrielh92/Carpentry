@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 public class Quadrant : MonoBehaviour {
     [Header("Seed Settings")]
@@ -18,6 +19,8 @@ public class Quadrant : MonoBehaviour {
     Square[,] hole;
     System.Random rng;
 
+    Dictionary<Vector3, Square> squares;
+
     private void Start() {
         if (useRandomSeed) {
             seed = Guid.NewGuid().ToString();
@@ -25,10 +28,11 @@ public class Quadrant : MonoBehaviour {
         rng = new System.Random(seed.GetHashCode());
 
         hole = new Square[(int)(width / unitSize), (int)(height / unitSize)];
+        squares = new Dictionary<Vector3, Square>();
 
         int _maxVertexIndex = GenerateHole();
 
-        //DrawDebugLines();
+        // DrawDebugLines();
         GenerateMesh(_maxVertexIndex);
     }
 
@@ -274,6 +278,23 @@ public class Quadrant : MonoBehaviour {
                 _position.y >= transform.position.y - (height / 2));
     }
 
+    public Square GetNearestSquare(Vector3 _position) {
+        Square nearest = hole[0,0];
+
+        // todo this is ridiculously inefficient to compute on every piece placement
+        //  probably better to have hole be a tree instead and search that way
+        for(int x = 0 ; x < hole.GetLength(0) ; x++) {
+            for(int y = 0 ; y < hole.GetLength(1) ; y++) {
+                float dist_to_nearest = Vector3.Distance(_position, nearest.GetMiddlePosition());
+                if(Vector3.Distance(_position, hole[x,y].GetMiddlePosition()) < dist_to_nearest) {
+                    nearest = hole[x,y];
+                }
+            }
+        }
+
+        return nearest;
+    }
+
     public class Node {
         public Vector3 position;
         public int vertexIndex = -1;
@@ -298,12 +319,39 @@ public class Quadrant : MonoBehaviour {
             filled = 0;
         }
 
+        public Vector3 GetMiddlePosition()
+        {
+            float x = ((topLeft.position.x * bottomRight.position.y - topLeft.position.y * bottomRight.position.y) * (bottomLeft.position.x - topRight.position.x) - 
+                (topLeft.position.x - bottomRight.position.x) * (bottomLeft.position.x * topRight.position.y - bottomLeft.position.y * topRight.position.x)) /
+                ((topLeft.position.x - bottomRight.position.x) * (bottomLeft.position.y - topRight.position.y) - (topLeft.position.y - bottomRight.position.y) * (bottomLeft.position.y - topRight.position.x));
+            float y = ((topLeft.position.x * bottomRight.position.y - topLeft.position.y * bottomRight.position.y) * (bottomLeft.position.y - topRight.position.y) - 
+                (topLeft.position.y - bottomRight.position.y) * (bottomLeft.position.x * topRight.position.y - bottomLeft.position.y * topRight.position.x)) /
+                ((topLeft.position.x - bottomRight.position.x) * (bottomLeft.position.y - topRight.position.y) - (topLeft.position.y - bottomRight.position.y) * (bottomLeft.position.y - topRight.position.x));
+
+            return new Vector3(x, y, -5);
+        }
+
         public Square() {
             filled = 1;
         }
 
+        public bool IsFilled() {
+            return filled != 0;
+        }
+
         public bool IsAtEdge() {
             return (left.filled == 1 || above.filled == 1 || right.filled == 1 || below.filled == 1);
+        }
+    }
+
+    private void OnDrawGizmos() {
+        if(hole == null) return;
+        for(int x = 0 ; x < hole.GetLength(0) ; x++) {
+            for(int y = 0 ; y < hole.GetLength(1) ; y++) {
+                if(!hole[x,y].IsFilled()) {
+                    Handles.Label(hole[x,y].GetMiddlePosition(), $"({x},{y})");
+                }
+            }
         }
     }
 
